@@ -1,0 +1,36 @@
+{
+  "name": "nrpc",
+  "version": "1.0.18",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "repository": "https://github.com/spiderjs/engine.git",
+  "author": "yayanyang <yayanyang@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "tsc -p .",
+    "dev": "mocha-typescript-watch dist/test config"
+  },
+  "dependencies": {
+    "apihandler": "^1.0.13",
+    "log4js": "^1.1.1",
+    "rx": "^4.1.0",
+    "rx-node": "^1.0.2",
+    "@types/log4js": "0.0.32",
+    "@types/rx": "^4.1.1",
+    "@types/rx-node": "0.0.5",
+    "@types/stream-buffers": "^3.0.2",
+    "stream-buffers": "^3.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.17.1",
+    "eslint-plugin-node": "^4.2.1",
+    "mocha": "^3.2.0",
+    "mocha-typescript": "^1.0.23",
+    "nodemon": "^1.11.0",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}

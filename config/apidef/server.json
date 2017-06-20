@@ -1,0 +1,23 @@
+{
+    "GET /hello": {
+        "params": [
+            {
+                "name": "message",
+                "required": true
+            },
+            "extend"
+        ]
+    },
+    "POST /hello": {
+        "auth": [
+            "server"
+        ],
+        "params": [
+            {
+                "name": "message",
+                "required": true
+            },
+            "extend"
+        ]
+    }
+}
