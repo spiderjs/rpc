@@ -104,7 +104,7 @@ export class Peer<TUser> implements IRPC {
 
     public open() {
         this.init();
-        logger.debug(`${this.options.name} start handshake`);
+        logger.trace(`${this.options.name} start handshake`);
         this.handlshake();
     }
 
@@ -128,7 +128,7 @@ export class Peer<TUser> implements IRPC {
 
         const call = JSON.stringify({ id, name, params });
 
-        logger.debug(`call [${name}]`, call);
+        logger.trace(`call [${name}]`, call);
 
         const length = Buffer.byteLength(call);
 
@@ -138,7 +138,7 @@ export class Peer<TUser> implements IRPC {
         buffer.writeUInt32BE(length, 2);
         buffer.write(call, 6);
 
-        logger.debug(`call [${name}] ${buffer.toString('UTF-8', 6)}`);
+        logger.trace(`call [${name}] ${buffer.toString('UTF-8', 6)}`);
 
         this.streamBuffer.push(buffer);
 
@@ -181,7 +181,7 @@ export class Peer<TUser> implements IRPC {
         }, this.options.timeout);
 
         this.options.duplex.on('data', (data) => {
-            logger.debug(`${this.options.name} recv data:${JSON.stringify(data)}`);
+            logger.trace(`${this.options.name} recv data:${JSON.stringify(data)}`);
             this.recvBuffer.write(data);
 
             while (true) {
@@ -190,19 +190,19 @@ export class Peer<TUser> implements IRPC {
                 }
 
                 const header = this.recvBuffer.getContents(6);
-                logger.debug(`${this.options.name} ${JSON.stringify(header)}`);
+                logger.trace(`${this.options.name} ${JSON.stringify(header)}`);
                 const code = header.readUInt16BE(0);
                 const length = header.readUInt32BE(2);
 
-                logger.debug(`${this.options.name} recv request(${code},${length})`);
+                logger.trace(`${this.options.name} recv request(${code},${length})`);
 
                 if (length > this.recvBuffer.size()) {
 
-                    logger.debug(`expect data(${length}) current length(${this.recvBuffer.size()})`);
+                    logger.trace(`expect data(${length}) current length(${this.recvBuffer.size()})`);
 
                     const body = this.recvBuffer.getContents();
 
-                    logger.debug(`####### body`, body);
+                    logger.trace(`####### body`, body);
 
                     this.recvBuffer.write(header);
 
@@ -213,7 +213,7 @@ export class Peer<TUser> implements IRPC {
                     return;
                 }
 
-                logger.debug(`${this.options.name} recv request(${code},${length}) -- whole`);
+                logger.trace(`${this.options.name} recv request(${code},${length}) -- whole`);
 
                 if (length === 0) {
                     this.onData(code, Buffer.alloc(0));
@@ -273,7 +273,7 @@ export class Peer<TUser> implements IRPC {
     }
 
     private handleRequest(code: Code, data: any) {
-        logger.debug(`recv call(${data.name}) with params:${JSON.stringify(data.params)}`);
+        logger.trace(`recv call(${data.name}) with params:${JSON.stringify(data.params)}`);
         this.context.call<any, TUser>({
             name: data.name,
             params: data.params,
@@ -282,7 +282,7 @@ export class Peer<TUser> implements IRPC {
             list.push(item);
             return list;
         }, []).subscribe((result: any) => {
-            logger.debug(`####`);
+            logger.trace(`####`);
             if (result.length === 1) {
                 this.onResponse({
                     code: 'SUCCESS',
@@ -329,7 +329,7 @@ export class Peer<TUser> implements IRPC {
 
     private handleAuth(code: Code, data: Buffer) {
 
-        logger.debug(`${this.options.name} handle auth(${this.state})`);
+        logger.trace(`${this.options.name} handle auth(${this.state})`);
 
         if (this.state === State.REJECT) {
             const body = JSON.stringify({
@@ -399,7 +399,7 @@ export class Peer<TUser> implements IRPC {
     }
 
     private handleAuthResp(code: Code, data: any) {
-        logger.debug(`${this.options.name} ${this.state} ${JSON.stringify(data)}`);
+        logger.trace(`${this.options.name} ${this.state} ${JSON.stringify(data)}`);
         if (data.code !== 'SUCCESS') {
             logger.error(`auth response(${data.code}) :${data.errmsg}`);
             this.state = State.REJECT;
@@ -410,7 +410,7 @@ export class Peer<TUser> implements IRPC {
         if (this.state === State.HANDSHAKE) {
             this.state = State.ACCEPT_BY_PEER;
         } else if (this.state === State.ACCEPT_PEER) {
-            logger.debug(`${this.options.name} ACCEPT`);
+            logger.trace(`${this.options.name} ACCEPT`);
             this.state = State.ACCEPT;
             this.emit('accept');
         } else {

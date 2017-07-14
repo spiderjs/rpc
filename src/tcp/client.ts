@@ -3,6 +3,7 @@ import rpc = require('../rpc');
 import events = require('events');
 import log4js = require('log4js');
 import apihandler = require('apihandler');
+import config = require('config');
 
 const logger = log4js.getLogger('nrpc-tcp-client');
 
@@ -18,8 +19,14 @@ export class TCPClient<TUser> extends events.EventEmitter {
     private port: number;
     private host?: string;
     private closed = false;
+    private maxRetryTimeout = 20000;
+    private retryTimeout = 1000;
     constructor(private options: TCPClientOptions<TUser>) {
         super();
+
+        if (config.has('nrpc.tcp.retrytimeout')) {
+            this.maxRetryTimeout = config.get<number>('nrpc.tcp.retrytimeout') * 1000;
+        }
     }
 
     public connect(port: number, hostname?: string) {
@@ -64,7 +71,15 @@ export class TCPClient<TUser> extends events.EventEmitter {
 
         client.on('close', (haserror) => {
             if (!haserror && !this.closed) {
-                this.connect(this.port, this.host);
+                setTimeout(() => {
+                    this.retryTimeout = this.retryTimeout * 2;
+
+                    if (this.retryTimeout > this.maxRetryTimeout) {
+                        this.retryTimeout = this.maxRetryTimeout;
+                    }
+
+                    this.connect(this.port, this.host);
+                }, this.retryTimeout);
             }
         });
 
