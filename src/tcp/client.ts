@@ -64,29 +64,31 @@ export class TCPClient<TUser> extends events.EventEmitter {
             // tslint:disable-next-line:max-line-length
             logger.error(`[${client.localAddress}:${client.localPort} => ${client.remoteAddress}:${client.remotePort}] raise error`, error);
             if (!this.closed) {
-                this.connect(this.port, this.host);
+                this.reconnect();
             }
 
         });
 
         client.on('close', (haserror) => {
             if (!haserror && !this.closed) {
-                setTimeout(() => {
-                    this.retryTimeout = this.retryTimeout * 2;
-
-                    if (this.retryTimeout > this.maxRetryTimeout) {
-                        this.retryTimeout = this.maxRetryTimeout;
-                    }
-
-                    this.connect(this.port, this.host);
-                }, this.retryTimeout);
+                this.reconnect();
             }
         });
 
         this.client = client;
     }
 
+    private reconnect() {
+        setTimeout(() => {
+            this.retryTimeout = this.retryTimeout * 2;
 
+            if (this.retryTimeout > this.maxRetryTimeout) {
+                this.retryTimeout = this.maxRetryTimeout;
+            }
+
+            this.connect(this.port, this.host);
+        }, this.retryTimeout);
+    }
 
     private createPeer(connection: net.Socket): rpc.Peer<TUser> {
         return new rpc.Peer<TUser>({
